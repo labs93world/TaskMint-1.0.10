@@ -20,6 +20,13 @@
   - Sender: Firebase Cloud Functions in `/app/functions/index.js` (onPayoutUpdate, onSubmissionUpdate, onNewTask broadcast, dailyReminder 7PM IST). Deploy config `/app/firebase.json`, `/app/.firebaserc`, guide `/app/functions/README.md`.
   - Pure Firebase, no Emergent server. Requires Blaze plan + user runs `firebase deploy --only functions`. Push only works on a real native build.
 
+## Deployment fix (2026-10-06)
+- User's Emergent production deploy failed (BUILD FAILED: `git rev-parse` exit 128 in EAS workspace, `eas project:init failed`, no keystore).
+- Root cause 1 (FIXED): imported repo's `.gitignore` had `.env`/`.env.*`/`*.env` → `frontend/.env` + `backend/.env` were never tracked, so the git-based deployment snapshot shipped with no env files. Removed patterns; committed both .env files.
+- Root cause 2 (FIXED): `frontend/yarn.lock` missing → generated + committed (`--frozen-lockfile` builds).
+- Verified by deployment_agent re-scan (dockerignore/yarn.lock blockers cleared) + testing_agent iteration_4 (all pass, no regressions).
+- Remaining: deployment_agent policy flags Firebase-as-datastore (by design, kept). EAS keystore/git-root errors are pipeline-side — if they persist after redeploy, escalate to Emergent support.
+
 ## Credentials
 - Admin panel access key: `TaskMint000` (long-press version text on Profile tab to open hidden popup).
 
