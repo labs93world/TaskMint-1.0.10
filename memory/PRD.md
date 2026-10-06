@@ -15,7 +15,10 @@
 - Full repo import from GitHub → /app (rsync, preserved .env/.git/.emergent/node_modules; verified with diff — nothing missed).
 - Removed "Open task link" button from `src/components/home/TaskDetailModal.tsx`.
 - Removed `secureTextEntry` from admin key input in `app/(tabs)/profile.tsx` (text now visible while typing).
-- Testing agent iteration_3: both changes PASS, no regressions.
+- **Remote push (FCM) — works when app is closed/never opened:**
+  - Client: `src/lib/push.ts` grabs FCM device token, saves to `users/{deviceId}.fcmToken`; called from `app/_layout.tsx` after permission grant. `savePushToken()` added to `src/lib/firestore.ts`.
+  - Sender: Firebase Cloud Functions in `/app/functions/index.js` (onPayoutUpdate, onSubmissionUpdate, onNewTask broadcast, dailyReminder 7PM IST). Deploy config `/app/firebase.json`, `/app/.firebaserc`, guide `/app/functions/README.md`.
+  - Pure Firebase, no Emergent server. Requires Blaze plan + user runs `firebase deploy --only functions`. Push only works on a real native build.
 
 ## Credentials
 - Admin panel access key: `TaskMint000` (long-press version text on Profile tab to open hidden popup).

@@ -17,4 +17,5 @@ export const KEYS = {
   notifiedPayouts: "tm_notified_payouts", // string[] "payoutId:status" already notified
   notifiedSubs: "tm_notified_subs", // string[] submission ids already notified (approved)
   seenTasks: "tm_seen_tasks", // string[] task ids already seen (new-task alerts)
+  pushToken: "tm_push_token", // last FCM device token saved to Firestore (dedup)
 } as const;

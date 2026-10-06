@@ -22,6 +22,7 @@ import {
   requestNotificationPermission,
   scheduleDailyReminder,
 } from "@/src/lib/notifications";
+import { registerForPush } from "@/src/lib/push";
 
 LogBox.ignoreAllLogs(true);
 
@@ -49,7 +50,7 @@ if (Platform.OS === "android") {
 // Runs background reconciliation of the device's requests with Firestore and
 // wires up notifications (permission, daily reminder, background sync, taps).
 function ReconcileRunner() {
-  const { reconcile, onboarded } = useUser();
+  const { reconcile, onboarded, deviceId } = useUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -73,10 +74,13 @@ function ReconcileRunner() {
       const { granted } = await requestNotificationPermission();
       if (granted) {
         await scheduleDailyReminder();
+        // Register this device for remote FCM push so Cloud Functions can
+        // deliver notifications even when the app is fully closed.
+        await registerForPush(deviceId);
       }
       await registerBackgroundSync();
     })();
-  }, [onboarded]);
+  }, [onboarded, deviceId]);
 
   // Warm + cold-start tap handlers: open the right screen when a notification
   // is tapped.

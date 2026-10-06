@@ -106,6 +106,26 @@ export async function touchActive(deviceId: string) {
   }
 }
 
+// Saves this device's FCM push token on its user doc so Cloud Functions can
+// deliver remote pushes even when the app is closed.
+export async function savePushToken(
+  deviceId: string,
+  token: string,
+  platform: string,
+) {
+  await setDoc(
+    doc(db, "users", deviceId),
+    {
+      deviceId,
+      fcmToken: token,
+      pushPlatform: platform,
+      pushEnabled: true,
+      tokenUpdatedAt: Date.now(),
+    },
+    { merge: true },
+  );
+}
+
 export async function countUsers(): Promise<number> {
   const snap = await getCountFromServer(collection(db, "users"));
   return snap.data().count;
