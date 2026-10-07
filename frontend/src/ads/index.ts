@@ -16,9 +16,12 @@ try {
 const available = !!(GMA && GMA.default);
 
 let initialized = false;
+
+// --------------------------- App Open ad ------------------------------------
 let appOpenAd: any = null;
 let appOpenLoaded = false;
 let appOpenShowing = false;
+let appOpenShowOnLoad = false; // show as soon as it finishes loading
 
 function loadAppOpen() {
   if (!available) return;
@@ -28,11 +31,15 @@ function loadAppOpen() {
     appOpenLoaded = false;
     appOpenAd.addAdEventListener(AdEventType.LOADED, () => {
       appOpenLoaded = true;
+      if (appOpenShowOnLoad) {
+        appOpenShowOnLoad = false;
+        showAppOpen();
+      }
     });
     appOpenAd.addAdEventListener(AdEventType.CLOSED, () => {
       appOpenShowing = false;
       appOpenLoaded = false;
-      loadAppOpen();
+      loadAppOpen(); // preload the next one so every open can show it
     });
     appOpenAd.addAdEventListener(AdEventType.ERROR, () => {
       appOpenLoaded = false;
@@ -43,8 +50,14 @@ function loadAppOpen() {
   }
 }
 
+// Shows the App Open ad on EVERY app open: immediately if it's loaded,
+// otherwise it flags itself to show the moment loading completes.
 function showAppOpen() {
-  if (!available || !appOpenLoaded || appOpenShowing) return;
+  if (!available || appOpenShowing) return;
+  if (!appOpenLoaded) {
+    appOpenShowOnLoad = true;
+    return;
+  }
   try {
     appOpenShowing = true;
     appOpenAd.show();
@@ -55,24 +68,59 @@ function showAppOpen() {
 
 let appStateRef: AppStateStatus = "active";
 
+// --------------------------- Rewarded Interstitial --------------------------
+// Preloaded so it can be shown instantly when a reward is claimed. IMPORTANT:
+// a rewarded-interstitial ad unit MUST use the RewardedInterstitialAd class —
+// using RewardedAd here silently fails to load in production (the old bug that
+// made the ad never appear after claiming a reward).
+let riAd: any = null;
+let riLoaded = false;
+let riShowing = false;
+
+function loadRewardedInterstitial() {
+  if (!available) return;
+  try {
+    const { RewardedInterstitialAd, RewardedAdEventType, AdEventType } = GMA;
+    riAd = RewardedInterstitialAd.createForAdRequest(AD_UNITS.rewardedInterstitial);
+    riLoaded = false;
+    riAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
+      riLoaded = true;
+    });
+    riAd.addAdEventListener(AdEventType.CLOSED, () => {
+      riShowing = false;
+      riLoaded = false;
+      loadRewardedInterstitial(); // preload the next one
+    });
+    riAd.addAdEventListener(AdEventType.ERROR, () => {
+      riLoaded = false;
+      riShowing = false;
+    });
+    riAd.load();
+  } catch {
+    // ignore
+  }
+}
+
 export async function initAds() {
   if (!available || initialized) return;
   try {
     await GMA.default().initialize();
     initialized = true;
     loadAppOpen();
-    // Show on cold start once the first ad is ready.
-    setTimeout(showAppOpen, 1500);
+    loadRewardedInterstitial();
+    // Cold start: show the App Open ad as soon as it is ready.
+    showAppOpen();
     AppState.addEventListener("change", (next) => {
       const returning = /inactive|background/.test(appStateRef) && next === "active";
       appStateRef = next;
-      if (returning) showAppOpen();
+      if (returning) showAppOpen(); // show again on every return to foreground
     });
   } catch {
     // ignore
   }
 }
 
+// --------------------------- Rewarded (for chances) -------------------------
 function showFullScreenRewarded(unitId: string): Promise<boolean> {
   if (!available) return Promise.resolve(true); // preview: grant immediately
   return new Promise((resolve) => {
@@ -109,8 +157,21 @@ export function showRewarded(): Promise<boolean> {
   return showFullScreenRewarded(AD_UNITS.rewarded);
 }
 
+// Shows the preloaded rewarded-interstitial if ready; otherwise kicks off a
+// fresh load so the next claim shows it. Resolves true if it was shown.
 export function showRewardedInterstitial(): Promise<boolean> {
-  return showFullScreenRewarded(AD_UNITS.rewardedInterstitial);
+  if (!available) return Promise.resolve(true);
+  try {
+    if (riLoaded && !riShowing) {
+      riShowing = true;
+      riAd.show();
+      return Promise.resolve(true);
+    }
+    loadRewardedInterstitial();
+    return Promise.resolve(false);
+  } catch {
+    return Promise.resolve(false);
+  }
 }
 
 export function AdBanner(): React.ReactElement | null {

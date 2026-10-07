@@ -49,16 +49,32 @@ export default function Login() {
           style={[styles.hero, { height: heroHeight }]}
         >
           <View style={[styles.coin, styles.coinA]}>
-            <Icon name="coins" size={20} color={colors.warning} weight="fill" />
+            <Icon name="coins" size={18} color={colors.warning} weight="fill" />
           </View>
           <View style={[styles.coin, styles.coinB]}>
-            <Text style={styles.rupee}>₹</Text>
+            <Text allowFontScaling={false} style={styles.rupee}>₹</Text>
           </View>
-          <View style={styles.heroBadge}>
-            <Icon name="gift" size={44} color={colors.onBrandPrimary} weight="fill" />
+          <View style={styles.heroContent}>
+            <View style={styles.heroBadge}>
+              <Icon name="gift" size={40} color={colors.onBrandPrimary} weight="fill" />
+            </View>
+            <Text
+              style={styles.heroTitle}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              allowFontScaling={false}
+            >
+              Earn Real Cash
+            </Text>
+            <Text
+              style={styles.heroSub}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              allowFontScaling={false}
+            >
+              Complete simple tasks & games
+            </Text>
           </View>
-          <Text style={styles.heroTitle}>Earn Real Cash</Text>
-          <Text style={styles.heroSub}>Complete simple tasks & games</Text>
         </LinearGradient>
 
         <View style={styles.features}>
@@ -106,11 +122,17 @@ const useStyles = makeStyles((c) => ({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+    paddingHorizontal: 24,
+  },
+  heroContent: {
+    alignItems: "center",
+    justifyContent: "center",
+    maxWidth: "100%",
   },
   heroBadge: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     backgroundColor: "rgba(255,255,255,0.16)",
     alignItems: "center",
     justifyContent: "center",
@@ -120,24 +142,26 @@ const useStyles = makeStyles((c) => ({
     fontWeight: "800",
     color: "#FFFFFF",
     marginTop: 14,
+    textAlign: "center",
   },
   heroSub: {
     fontSize: 13,
     color: "rgba(255,255,255,0.75)",
     marginTop: 4,
     fontWeight: "600",
+    textAlign: "center",
   },
   coin: {
     position: "absolute",
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: "rgba(255,255,255,0.14)",
     alignItems: "center",
     justifyContent: "center",
   },
-  coinA: { top: 22, left: 28 },
-  coinB: { bottom: 26, right: 30 },
+  coinA: { top: 18, left: 18 },
+  coinB: { bottom: 18, right: 18 },
   rupee: { fontSize: 20, fontWeight: "800", color: "#FFFFFF" },
   features: { marginTop: 24, gap: 14 },
   featureRow: { flexDirection: "row", alignItems: "center", gap: 14 },

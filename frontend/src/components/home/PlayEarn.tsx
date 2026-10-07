@@ -62,53 +62,53 @@ export function PlayEarn() {
 
   return (
     <View>
-      {/* Daily check-in hero */}
-      <View style={styles.hero}>
-        <View style={styles.heroTop}>
-          <View style={styles.heroIcon}>
-            <Icon name="gift" size={24} color={colors.onBrandSecondary} weight="fill" />
+      {/* Daily check-in hero — hidden once today's reward is claimed */}
+      {!claimedToday && (
+        <View style={styles.hero}>
+          <View style={styles.heroTop}>
+            <View style={styles.heroIcon}>
+              <Icon name="gift" size={24} color={colors.onBrandSecondary} weight="fill" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.heroTitle}>Daily Check-in</Text>
+              <Text style={styles.heroSub}>
+                {checkin.streak > 0 ? `${checkin.streak} day streak` : "Start your streak today"}
+              </Text>
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.heroTitle}>Daily Check-in</Text>
-            <Text style={styles.heroSub}>
-              {checkin.streak > 0 ? `${checkin.streak} day streak` : "Start your streak today"}
-            </Text>
-          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingRight: 4 }}
+            style={{ marginTop: 18 }}
+          >
+            {Array.from({ length: 20 }).map((_, i) => {
+              const pos = i + 1;
+              const cyclePos = ((Math.max(1, nextDay) - 1) % 20) + 1;
+              const claimed = claimedToday ? pos <= cyclePos : pos < cyclePos;
+              const isNext = !claimedToday && pos === cyclePos;
+              return (
+                <View key={i} style={[styles.dayBubble, claimed && styles.dayBubbleActive, isNext && styles.dayBubbleNext]}>
+                  <Text style={[styles.dayText, (claimed || isNext) && styles.dayTextActive]}>{rewardForDay(pos)}</Text>
+                </View>
+              );
+            })}
+          </ScrollView>
+
+          <Pressable
+            testID="daily-checkin-button"
+            disabled={claiming}
+            onPress={claim}
+            style={styles.claimBtn}
+          >
+            <Text style={styles.claimText}>{`Claim +${nextReward} points`}</Text>
+          </Pressable>
         </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 8, paddingRight: 4 }}
-          style={{ marginTop: 18 }}
-        >
-          {Array.from({ length: 20 }).map((_, i) => {
-            const pos = i + 1;
-            const cyclePos = ((Math.max(1, nextDay) - 1) % 20) + 1;
-            const claimed = claimedToday ? pos <= cyclePos : pos < cyclePos;
-            const isNext = !claimedToday && pos === cyclePos;
-            return (
-              <View key={i} style={[styles.dayBubble, claimed && styles.dayBubbleActive, isNext && styles.dayBubbleNext]}>
-                <Text style={[styles.dayText, (claimed || isNext) && styles.dayTextActive]}>{rewardForDay(pos)}</Text>
-              </View>
-            );
-          })}
-        </ScrollView>
-
-        <Pressable
-          testID="daily-checkin-button"
-          disabled={claimedToday}
-          onPress={claim}
-          style={[styles.claimBtn, claimedToday && styles.claimBtnDone]}
-        >
-          <Text style={styles.claimText}>
-            {claimedToday ? "Claimed today ✓" : `Claim +${nextReward} points`}
-          </Text>
-        </Pressable>
-      </View>
+      )}
 
       {/* Games grid */}
-      <View style={[styles.grid, { marginTop: 22 }]}>
+      <View style={[styles.grid, { marginTop: claimedToday ? 4 : 22 }]}>
         {GAMES.map((g) => (
           <Pressable
             key={g.id}
@@ -122,8 +122,24 @@ export function PlayEarn() {
             <View style={styles.gameIcon}>
               <Icon name={g.icon} size={28} color={colors.brand} weight="fill" />
             </View>
-            <Text style={styles.gameTitle}>{g.title}</Text>
-            <Text style={styles.gameSub}>{g.subtitle}</Text>
+            <Text
+              style={styles.gameTitle}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+              allowFontScaling={false}
+            >
+              {g.title}
+            </Text>
+            <Text
+              style={styles.gameSub}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+              allowFontScaling={false}
+            >
+              {g.subtitle}
+            </Text>
             <View style={styles.playChip}>
               <Text style={styles.playText}>Win 10k+ pts</Text>
             </View>

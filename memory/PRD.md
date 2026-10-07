@@ -27,6 +27,15 @@
 - Verified by deployment_agent re-scan (dockerignore/yarn.lock blockers cleared) + testing_agent iteration_4 (all pass, no regressions).
 - Remaining: deployment_agent policy flags Firebase-as-datastore (by design, kept). EAS keystore/git-root errors are pipeline-side — if they persist after redeploy, escalate to Emergent support.
 
+## UI/Ads batch (2026-10-07)
+- Login hero: text single-line auto-sized + allowFontScaling off + coins in corners → no overlap on large-font devices.
+- Home header: compact (smaller avatar/fonts), points pill shows number only (removed " pts"), title auto-sizes.
+- BannerCarousel: height ratio 0.46→0.375. Recommended banner image: 1200×450 px.
+- PlayEarn: Daily Check-in card hidden once claimed today; games title/subtitle single-line auto-sized; rewarded-interstitial fires on claim.
+- Wallet: removed purple balance card; balance now a top-right header pill `₹X.XX` (toFixed 2); tightened vertical spacing.
+- Ads module (src/ads/index.ts) rewritten: App Open ad shows on EVERY open (cold start show-on-load + foreground resume); rewarded-interstitial now uses correct `RewardedInterstitialAd` class + preloading (ROOT CAUSE of 3e — old code wrongly used `RewardedAd` with the RI unit so it never loaded/showed in APK).
+- Verified: testing_agent iteration_5, all 7 items pass, no regressions.
+
 ## Credentials
 - Admin panel access key: `TaskMint000` (long-press version text on Profile tab to open hidden popup).
 

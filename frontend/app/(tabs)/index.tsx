@@ -137,26 +137,26 @@ export default function Home() {
   return (
     <View style={styles.screen}>
       {/* Fixed header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
         <View style={styles.avatar}>
           {profile?.avatar ? (
             <Image source={{ uri: profile.avatar }} style={styles.avatarImg} />
           ) : (
-            <Icon name="user" size={24} color={colors.brand} weight="fill" />
+            <Icon name="user" size={20} color={colors.brand} weight="fill" />
           )}
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.name} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+          <Text style={styles.name} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false}>
             Hii, {profile?.name || "Guest"}
           </Text>
-          <Text style={styles.hello} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
+          <Text style={styles.hello} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} allowFontScaling={false}>
             {motivation}
           </Text>
         </View>
         <View style={styles.pointsPill} testID="home-points">
-          <Icon name="coins" size={16} color={colors.warning} weight="fill" />
-          <Text style={styles.pointsText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
-            {formatPoints(points)} pts
+          <Icon name="coins" size={15} color={colors.warning} weight="fill" />
+          <Text style={styles.pointsText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false}>
+            {formatPoints(points)}
           </Text>
         </View>
       </View>
@@ -252,7 +252,7 @@ export default function Home() {
           <Text style={styles.welcomeTitle}>Welcome to TaskMint! 🎉</Text>
           <Text style={styles.welcomeAmount}>{formatRupees(1)} added</Text>
           <Text style={styles.welcomeText}>
-            Here's a welcome bonus to get you started. Complete tasks and play games to
+            Here&apos;s a welcome bonus to get you started. Complete tasks and play games to
             earn even more!
           </Text>
           <Button
@@ -311,31 +311,32 @@ const useStyles = makeStyles((c) => ({
     alignItems: "center",
     gap: 10,
     paddingHorizontal: 16,
-    paddingBottom: 10,
+    paddingBottom: 8,
     backgroundColor: c.surface,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: c.brandTertiary,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
   },
-  avatarImg: { width: 44, height: 44 },
-  hello: { fontSize: 12.5, color: c.muted, fontWeight: "600", marginTop: 1 },
-  name: { fontSize: 18, fontWeight: "800", color: c.onSurface },
+  avatarImg: { width: 38, height: 38 },
+  hello: { fontSize: 11.5, color: c.muted, fontWeight: "600", marginTop: 1 },
+  name: { fontSize: 16, fontWeight: "800", color: c.onSurface },
   pointsPill: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 5,
     backgroundColor: c.brandTertiary,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 999,
+    maxWidth: 130,
   },
-  pointsText: { fontSize: 15, fontWeight: "800", color: c.brand },
+  pointsText: { fontSize: 14, fontWeight: "800", color: c.brand },
   body: { paddingHorizontal: 16, marginTop: 12 },
   taskCard: {
     flexDirection: "row",
