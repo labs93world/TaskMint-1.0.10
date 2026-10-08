@@ -32,7 +32,38 @@ import { formatRupees } from "@/src/utils/format";
 
 const isNative = Platform.OS !== "web";
 const DAILY_ID = "tm-daily-reminder";
+const ENGAGE_PREFIX = "tm-engage-";
+const ENGAGE_DAYS = 20; // schedule this many days ahead (survives app never opening)
 const BG_TASK = "tm-notify-sync";
+
+// 20 rotating engagement messages — a random one is delivered each day at 5 PM.
+const ENGAGE_MESSAGES: { title: string; body: string }[] = [
+  { title: "Play & earn 🎮", body: "A few quick games could top up your wallet right now." },
+  { title: "Spin the Wheel 🎡", body: "Your lucky spin is waiting — play and win bonus points!" },
+  { title: "Scratch & win 🎟️", body: "Open the Scratch card today and reveal your reward." },
+  { title: "Cash out time 💸", body: "You're close to a withdrawal. Earn a little more and cash out!" },
+  { title: "New tasks added 🆕", body: "Fresh offerwall tasks are live. Complete one and get paid." },
+  { title: "We miss you 👋", body: "Your rewards are piling up. Come back and claim them!" },
+  { title: "Daily check-in 🎁", body: "Don't break your streak — claim today's check-in bonus." },
+  { title: "Quick win 🏆", body: "Beat the Memory game and grab easy points in minutes." },
+  { title: "Earn on the go 🚀", body: "Got a minute? Turn it into real cash with a quick task." },
+  { title: "Big rewards inside 💰", body: "Complete an offerwall task and watch your balance grow." },
+  { title: "Your wallet misses you 👛", body: "Open TaskMint and keep your earnings rolling." },
+  { title: "Lucky day? 🍀", body: "Try the Spin Wheel today — a jackpot could be one tap away." },
+  { title: "Tap to earn ⚡", body: "New ways to earn are waiting on your home screen." },
+  { title: "Finish & cash out ✅", body: "Complete a task and withdraw straight to UPI or bank." },
+  { title: "Points dropping in 📈", body: "Play a game now and boost your points instantly." },
+  { title: "Don't miss out 🔥", body: "Today's rewards won't wait — earn before they're gone." },
+  { title: "5 minutes, real cash ⏱️", body: "A short task now means more money in your wallet." },
+  { title: "Streak bonus awaits ⭐", body: "Keep your check-in streak alive for bigger rewards." },
+  { title: "Game time 🎯", body: "Challenge yourself with a game and earn as you play." },
+  { title: "Reward ready 🎉", body: "Something good is waiting in TaskMint. Come claim it!" },
+];
+
+function pickRandom() {
+  return ENGAGE_MESSAGES[Math.floor(Math.random() * ENGAGE_MESSAGES.length)];
+}
+
 
 // --------------------------- Permissions -----------------------------------
 export async function requestNotificationPermission(): Promise<{
@@ -65,7 +96,10 @@ async function present(title: string, body: string, data: Record<string, any> = 
 }
 
 // --------------------------- Daily reminder ---------------------------------
-export async function scheduleDailyReminder(hour = 19, minute = 0) {
+// Pure LOCAL notification — fires even with the app killed / offline / never
+// opened, no server required. Default 2:00 AM so the "reward ready" nudge is
+// waiting in the tray each morning.
+export async function scheduleDailyReminder(hour = 2, minute = 0) {
   if (!isNative) return;
   try {
     await Notifications.cancelScheduledNotificationAsync(DAILY_ID).catch(() => {});
@@ -83,6 +117,50 @@ export async function scheduleDailyReminder(hour = 19, minute = 0) {
         minute,
       },
     });
+  } catch {
+    // ignore
+  }
+}
+
+// ----------------------- Engagement reminders (5 PM) ------------------------
+// A second family of pure LOCAL notifications. We pre-schedule the next
+// ENGAGE_DAYS days (each at 5 PM) with a RANDOM message per day, so a different
+// message is delivered daily even if the user never opens the app, is offline,
+// or the app is force-killed — all without any server. Re-run on every app open
+// to top the queue back up and keep the messages fresh.
+export async function scheduleEngagementReminders(hour = 17, minute = 0) {
+  if (!isNative) return;
+  try {
+    // Clear previously scheduled engagement notifications.
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync().catch(() => []);
+    await Promise.all(
+      scheduled
+        .filter((n) => (n.identifier || "").startsWith(ENGAGE_PREFIX))
+        .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier).catch(() => {})),
+    );
+
+    const now = new Date();
+    for (let i = 0; i < ENGAGE_DAYS; i++) {
+      const fire = new Date(now);
+      fire.setDate(now.getDate() + i);
+      fire.setHours(hour, minute, 0, 0);
+      // Skip today's slot if 5 PM has already passed.
+      if (fire.getTime() <= now.getTime()) continue;
+      const msg = pickRandom();
+      await Notifications.scheduleNotificationAsync({
+        identifier: `${ENGAGE_PREFIX}${i}`,
+        content: {
+          title: msg.title,
+          body: msg.body,
+          data: { deeplink: "/(tabs)" },
+          sound: "default",
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: fire,
+        },
+      });
+    }
   } catch {
     // ignore
   }

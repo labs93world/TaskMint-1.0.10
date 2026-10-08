@@ -247,19 +247,33 @@ export default function Home() {
       >
         <View style={styles.welcomeWrap}>
           <View style={styles.welcomeIcon}>
-            <Icon name="gift" size={40} color={colors.onBrandPrimary} weight="fill" />
+            <Icon name="gift" size={32} color={colors.onBrandPrimary} weight="fill" />
           </View>
-          <Text style={styles.welcomeTitle}>Welcome to TaskMint! 🎉</Text>
-          <Text style={styles.welcomeAmount}>{formatRupees(1)} added</Text>
+          <Text
+            style={styles.welcomeTitle}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+            allowFontScaling={false}
+          >
+            Welcome to TaskMint! 🎉
+          </Text>
+          <Text
+            style={styles.welcomeAmount}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            allowFontScaling={false}
+          >
+            {formatRupees(1)} added
+          </Text>
           <Text style={styles.welcomeText}>
-            Here&apos;s a welcome bonus to get you started. Complete tasks and play games to
-            earn even more!
+            Here&apos;s a welcome bonus to get you started. Earn more with tasks and games!
           </Text>
           <Button
             label="Awesome, let's go"
             testID="welcome-claim-button"
             onPress={() => setShowWelcome(false)}
-            style={{ marginTop: 20, width: "100%" }}
+            style={{ marginTop: 16, width: "100%" }}
           />
         </View>
       </Popup>
@@ -367,33 +381,33 @@ const useStyles = makeStyles((c) => ({
     borderRadius: 999,
   },
   retryText: { color: c.brand, fontWeight: "800" },
-  welcomeWrap: { alignItems: "center", paddingTop: 8 },
+  welcomeWrap: { alignItems: "center", paddingTop: 4 },
   welcomeIcon: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: c.brandPrimary,
     alignItems: "center",
     justifyContent: "center",
   },
   welcomeTitle: {
-    fontSize: 22,
+    fontSize: 19,
     fontWeight: "800",
     color: c.onSurfaceSecondary,
-    marginTop: 16,
+    marginTop: 12,
     textAlign: "center",
   },
   welcomeAmount: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "800",
     color: c.success,
-    marginTop: 6,
+    marginTop: 4,
   },
   welcomeText: {
-    fontSize: 14,
+    fontSize: 13,
     color: c.muted,
-    marginTop: 10,
+    marginTop: 8,
     textAlign: "center",
-    lineHeight: 21,
+    lineHeight: 19,
   },
 }));

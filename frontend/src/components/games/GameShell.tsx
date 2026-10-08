@@ -19,7 +19,7 @@ import { CHANCES_PER_AD, INTERSTITIAL_EVERY } from "@/src/constants/games";
 import { useUser } from "@/src/context/UserContext";
 import { useToast } from "@/src/components/ui/Toast";
 import { formatPoints } from "@/src/utils/format";
-import { showRewarded, showRewardedInterstitial } from "@/src/ads";
+import { useAdGate } from "@/src/components/ui/AdGate";
 
 export type GameApi = {
   chances: number;
@@ -43,10 +43,12 @@ export function GameShell({
   const router = useRouter();
   const { addPoints } = useUser();
   const toast = useToast();
+  const adGate = useAdGate();
 
   const [chances, setChances] = useState(0);
   const chancesRef = useRef(0);
   const [loadingAd, setLoadingAd] = useState(false);
+  const gettingRef = useRef(false); // synchronous one-click guard
   const [reward, setReward] = useState<{ points: number } | null>(null);
   const claimCountRef = useRef(0);
 
@@ -81,17 +83,22 @@ export function GameShell({
   persistChancesRef.current = persistChances;
 
   const getChances = async () => {
-    if (loadingAd) return;
+    // One click at a time — the ref is set synchronously so a rapid second tap
+    // (before React re-renders / before an instantly-resolving web ad) is
+    // ignored. `loadingAd` state is only for the Button's loading UI.
+    if (gettingRef.current) return;
+    gettingRef.current = true;
     setLoadingAd(true);
     try {
-      const ok = await showRewarded();
+      // The Ad Gate shows a non-dismissable loader (5s cooldown) and handles
+      // detailed errors with its own retry / cancel buttons.
+      const ok = await adGate.showAd("rewarded", 5000);
       if (ok) {
         applyChances(chancesRef.current + CHANCES_PER_AD);
         toast.show(`+${CHANCES_PER_AD} chances added!`, "success");
-      } else {
-        toast.show("Ad not completed. Try again.", "error");
       }
     } finally {
+      gettingRef.current = false;
       setLoadingAd(false);
     }
   };
@@ -111,14 +118,16 @@ export function GameShell({
     async (points: number, label?: string) => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       await addPoints(points, label ?? `${title} reward`);
-      setReward({ points });
       claimCountRef.current += 1;
       await storage.setItem(KEYS.claimCount, claimCountRef.current);
+      // Show the rewarded-interstitial (via the Ad Gate, 3s cooldown) on every
+      // Nth claim, THEN reveal the reward popup.
       if (claimCountRef.current % INTERSTITIAL_EVERY === 0) {
-        showRewardedInterstitial();
+        await adGate.showAd("rewardedInterstitial", 3000);
       }
+      setReward({ points });
     },
-    [addPoints, title],
+    [addPoints, title, adGate],
   );
 
   const notify = useCallback(

@@ -17,10 +17,12 @@ import { ToastProvider } from "@/src/components/ui/Toast";
 import { NetworkGate } from "@/src/components/NetworkGate";
 import { ForceUpdateGate } from "@/src/components/ForceUpdateGate";
 import { initAds } from "@/src/ads";
+import { AdGateProvider } from "@/src/components/ui/AdGate";
 import {
   registerBackgroundSync,
   requestNotificationPermission,
   scheduleDailyReminder,
+  scheduleEngagementReminders,
 } from "@/src/lib/notifications";
 import { registerForPush } from "@/src/lib/push";
 
@@ -73,7 +75,9 @@ function ReconcileRunner() {
     (async () => {
       const { granted } = await requestNotificationPermission();
       if (granted) {
-        await scheduleDailyReminder();
+        // Local reminders — work offline / app killed / app never opened.
+        await scheduleDailyReminder(); // daily reward reminder @ 2 AM
+        await scheduleEngagementReminders(); // random daily nudge @ 5 PM
         // Register this device for remote FCM push so Cloud Functions can
         // deliver notifications even when the app is fully closed.
         await registerForPush(deviceId);
@@ -121,18 +125,20 @@ export default function RootLayout() {
             <KeyboardProvider>
               <UserProvider>
                 <ToastProvider>
-                  <NetworkGate>
-                    <ForceUpdateGate>
-                      <ReconcileRunner />
-                      <StatusBar style="dark" />
-                      <Stack
-                        screenOptions={{
-                          headerShown: false,
-                          contentStyle: { backgroundColor: "#F4F5F9" },
-                        }}
-                      />
-                    </ForceUpdateGate>
-                  </NetworkGate>
+                  <AdGateProvider>
+                    <NetworkGate>
+                      <ForceUpdateGate>
+                        <ReconcileRunner />
+                        <StatusBar style="dark" />
+                        <Stack
+                          screenOptions={{
+                            headerShown: false,
+                            contentStyle: { backgroundColor: "#F4F5F9" },
+                          }}
+                        />
+                      </ForceUpdateGate>
+                    </NetworkGate>
+                  </AdGateProvider>
                 </ToastProvider>
               </UserProvider>
             </KeyboardProvider>

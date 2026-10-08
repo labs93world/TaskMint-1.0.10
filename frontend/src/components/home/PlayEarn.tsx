@@ -11,7 +11,7 @@ import { KEYS } from "@/src/lib/storageKeys";
 import { istDayKey } from "@/src/utils/time";
 import { useUser } from "@/src/context/UserContext";
 import { useToast } from "@/src/components/ui/Toast";
-import { showRewardedInterstitial } from "@/src/ads";
+import { useAdGate } from "@/src/components/ui/AdGate";
 
 // Reward grows by 50 every day, cycling over 20 days: day 1 = 100 ... day 20 = 1050,
 // then day 21 restarts at 100. Streak only resets if a day is missed.
@@ -23,6 +23,7 @@ export function PlayEarn() {
   const router = useRouter();
   const { addPoints } = useUser();
   const toast = useToast();
+  const adGate = useAdGate();
   const [checkin, setCheckin] = useState<{ lastDate: string; streak: number }>({ lastDate: "", streak: 0 });
   const [claiming, setClaiming] = useState(false);
 
@@ -56,7 +57,8 @@ export function PlayEarn() {
     await addPoints(reward, "Daily check-in");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     toast.show(`+${reward} points claimed!`, "success");
-    showRewardedInterstitial();
+    // Rewarded-interstitial via the Ad Gate (non-dismissable loader, 3s cooldown).
+    await adGate.showAd("rewardedInterstitial", 3000);
     setClaiming(false);
   };
 

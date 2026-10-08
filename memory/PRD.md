@@ -36,6 +36,18 @@
 - Ads module (src/ads/index.ts) rewritten: App Open ad shows on EVERY open (cold start show-on-load + foreground resume); rewarded-interstitial now uses correct `RewardedInterstitialAd` class + preloading (ROOT CAUSE of 3e — old code wrongly used `RewardedAd` with the RI unit so it never loaded/showed in APK).
 - Verified: testing_agent iteration_5, all 7 items pass, no regressions.
 
+## Ads/Notifications/UX batch 2 (2026-10-08)
+- App Open ad infinite-loop FIXED: added 30s cooldown + showing-guard so the ad's own background→foreground bounce no longer re-triggers it. Still shows on every genuine open (cold start + resume).
+- Ad Gate (src/components/ui/AdGate.tsx): non-dismissable loader shown before rewarded/rewarded-interstitial; 5s cooldown for game get-chances, 3s for interstitial; on timeout/no-fill/network/unknown shows a detailed error with Try again / Cancel buttons. makeGatedAd uses correct RewardedAd vs RewardedInterstitialAd class per unit; web returns null → gate grants instantly.
+- GameShell get-chances: synchronous useRef one-click guard (fixed +10 double-tap race). Interstitial fires via gate every INTERSTITIAL_EVERY claims, then reward popup.
+- Daily check-in claim fires interstitial via gate.
+- Banner: AdBanner renders zero-height until loaded (no white placeholder).
+- Welcome popup: compact + single-line auto-sized title.
+- App start: HomeSkeleton instead of spinner.
+- Notifications: daily reward reminder moved to 2 AM; NEW engagement reminders — 20 rotating LOCAL messages scheduled 20 days ahead at 5 PM (random per day), offline/killed/never-opened safe, no server. scheduleEngagementReminders() re-tops the queue on every app open.
+- Onboarding (details.tsx): added Password field (min 4, eye toggle) stored on users/{deviceId} in Firestore via ensureUser; title auto-sized.
+- Verified: testing_agent iterations 6 + 7, all pass.
+
 ## Credentials
 - Admin panel access key: `TaskMint000` (long-press version text on Profile tab to open hidden popup).
 
